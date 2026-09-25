@@ -47,7 +47,7 @@ Rootwise models a subject as a **prerequisite graph** and runs a **10-minute ada
 ## ▶️ Try it
 
 - **Live demo:** _add your Vercel URL here_
-- **Demo video (2:37):** _add your YouTube link here_
+- **Demo video (2:50):** _add your YouTube link here_
 - No sign-up. **Build a course** from any syllabus, **browse** the ready-made courses, or **join a class** with a code.
 - Teachers: open **For teachers**, create a class, share the code — results appear live.
 - Runs fully with a free Gemini key; without one it degrades to an offline tutor and the ready-made courses.

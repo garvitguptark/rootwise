@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowRight, Check, ChevronLeft, ClipboardCopy, Clock, Lightbulb, Printer, Target, X } from "lucide-react";
+import { ArrowRight, Check, ChevronLeft, ClipboardCopy, Clock, Gauge, Lightbulb, Printer, Target, X } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useMemo, useState } from "react";
@@ -139,6 +139,17 @@ function Report({ course }: { course: Course }) {
         <section>
           <h2 className="font-serif text-[30px] leading-tight">Your study path</h2>
           <p className="mt-1 text-[14px] text-ink-2">Prerequisites first; among those, whatever unlocks the most.</p>
+          <Link
+            href={`/courses/${course.id}/plan`}
+            className="pressable mt-4 flex items-center gap-3 rounded-2xl border border-accent/30 bg-accent-soft p-4 hover:shadow-card"
+          >
+            <Gauge className="size-5 shrink-0 text-accent-ink" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[15px] font-semibold">Exam soon? Plan my hours</span>
+              <span className="block text-[12.5px] text-ink-2">Tell Rootwise how much time you have. It fits this path into it and says what to skip.</span>
+            </span>
+            <ArrowRight className="size-4 shrink-0" aria-hidden />
+          </Link>
           {path.length ? (
             <ol className="mt-4 space-y-2.5">
               {path.map((step, i) => {

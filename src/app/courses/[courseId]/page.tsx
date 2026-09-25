@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { ArrowRight, ChevronRight, Clock, Keyboard, RotateCcw, Target, Timer } from "lucide-react";
+import { ArrowRight, ChevronRight, Clock, Gauge, Keyboard, RotateCcw, Target, Timer } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useMemo } from "react";
@@ -164,6 +164,15 @@ function CourseOverview({ course }: { course: Course }) {
               </div>
             </Card>
           )}
+
+          <Link href={`/courses/${course.id}/plan`} className="pressable flex items-center gap-3 rounded-2xl border border-line bg-surface p-4 shadow-card hover:border-ink">
+            <Gauge className="size-5 shrink-0 text-accent-ink" aria-hidden />
+            <span className="min-w-0 flex-1">
+              <span className="block text-[14.5px] font-semibold">Pace setter</span>
+              <span className="block text-[12.5px] text-ink-2">Got 3 hours? Get a plan that fits them.</span>
+            </span>
+            <ArrowRight className="size-4 shrink-0" aria-hidden />
+          </Link>
 
           <Card className="p-0">
             <p className="flex items-center gap-2 border-b border-line px-5 py-3 text-[13px] font-medium">

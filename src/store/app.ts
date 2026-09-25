@@ -6,6 +6,7 @@ import { createJSONStorage, persist } from "zustand/middleware";
 import { builtinCourses } from "@/content";
 import { PRACTICE_PARAMS, paramsFor, update, type BktParams } from "@/lib/engine/bkt";
 import { buildGraph } from "@/lib/engine/graph";
+import type { Plan, PlanSettings } from "@/lib/engine/plan";
 import type { ConceptStatus, DiagnosticState } from "@/lib/engine/types";
 import type { ChatMessage, Course, LanguageCode, Lesson, TeachBackResult } from "@/lib/schema";
 
@@ -37,6 +38,15 @@ export interface Settings {
   autoRead: boolean;
 }
 
+export interface StoredPlan {
+  settings: PlanSettings;
+  plan: Plan;
+  createdAt: string;
+  /** block id → actual minutes spent */
+  done: Record<string, number>;
+  active?: { id: string; startedAt: string };
+}
+
 type Key = `${string}:${string}`;
 export const key = (courseId: string, conceptId: string): Key => `${courseId}:${conceptId}`;
 
@@ -48,7 +58,11 @@ interface State {
   chats: Record<Key, ChatMessage[]>;
   teachbacks: Record<Key, TeachBackAttempt[]>;
   settings: Settings;
+  plans: Record<string, StoredPlan>;
 
+  setPlan: (courseId: string, p: StoredPlan | null) => void;
+  startBlock: (courseId: string, blockId: string) => void;
+  finishBlock: (courseId: string, blockId: string) => void;
   addCourse: (c: Course) => void;
   removeCourse: (id: string) => void;
   addQuestions: (courseId: string, questions: Course["questions"]) => void;
@@ -97,6 +111,27 @@ export const useApp = create<State>()(
       chats: {},
       teachbacks: {},
       settings: { language: "en", readable: false, textScale: 1, theme: "system", autoRead: false },
+      plans: {},
+
+      setPlan: (courseId, p) =>
+        set((s) => {
+          const plans = { ...s.plans };
+          if (p) plans[courseId] = p;
+          else delete plans[courseId];
+          return { plans };
+        }),
+      startBlock: (courseId, blockId) =>
+        set((s) => {
+          const p = s.plans[courseId];
+          return p ? { plans: { ...s.plans, [courseId]: { ...p, active: { id: blockId, startedAt: new Date().toISOString() } } } } : {};
+        }),
+      finishBlock: (courseId, blockId) =>
+        set((s) => {
+          const p = s.plans[courseId];
+          if (!p) return {};
+          const spent = p.active?.id === blockId ? Math.max(1, Math.round((Date.now() - Date.parse(p.active.startedAt)) / 60000)) : 0;
+          return { plans: { ...s.plans, [courseId]: { ...p, active: undefined, done: { ...p.done, [blockId]: spent } } } };
+        }),
 
       addCourse: (c) => set((s) => ({ courses: [c, ...s.courses.filter((x) => x.id !== c.id)] })),
       removeCourse: (id) =>
@@ -200,6 +235,7 @@ export const useApp = create<State>()(
         chats: s.chats,
         teachbacks: s.teachbacks,
         settings: s.settings,
+        plans: s.plans,
       }),
     },
   ),

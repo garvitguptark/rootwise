@@ -37,6 +37,24 @@ test("diagnostic traces a student's mistakes to the true root gap", async ({ pag
   await page.getByRole("button", { name: /See my full report/ }).click();
   await expect(page.getByRole("heading", { level: 1 })).toContainText("Product–sum pairs");
   await expect(page.getByRole("link", { name: /Product–sum pairs.*Root gap/ })).toBeVisible();
+
+  // Pace setter: one hour puts the root gap first and triages the rest.
+  await page.getByRole("link", { name: /Plan my hours/ }).click();
+  await page.getByRole("button", { name: "1h", exact: true }).click();
+  await page.getByRole("button", { name: /Plan my hours/ }).click();
+  await expect(page.getByText("Honest triage")).toBeVisible();
+  await expect(page.getByText(/Up next/)).toBeVisible();
+  await expect(page.getByText("Learn · Product–sum pairs").first()).toBeVisible();
+
+  // The game starts from the student's exact mistake and counts as evidence.
+  await page.goto("/courses/quadratics-cbse10/learn/factor-pairs");
+  const tiles = page.getByRole("group", { name: /Number tiles/ });
+  await tiles.getByRole("button", { name: "2", exact: true }).click();
+  await tiles.getByRole("button", { name: "5", exact: true }).click();
+  await expect(page.getByText(/wrong signs/)).toBeVisible();
+  await tiles.getByRole("button", { name: "−2", exact: true }).click();
+  await tiles.getByRole("button", { name: "−5", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Next round" })).toBeVisible();
 });
 
 test("a student with no gaps is told so, quickly", async ({ page }) => {

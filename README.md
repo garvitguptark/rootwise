@@ -35,7 +35,7 @@ Rootwise models a subject as a **prerequisite graph** and runs a **10-minute ada
 ## ▶️ Try it
 
 - **Live demo:** _add your Vercel URL here_
-- **Demo video (2:39):** _add your YouTube link here_
+- **Demo video (2:37):** _add your YouTube link here_
 - No sign-up. Both built-in courses, the adaptive engine, the teacher dashboard and an offline tutor work **without any API key**.
 - Add a free Gemini key to unlock AI course generation from any syllabus, the AI Socratic tutor, and AI-graded teach-back in 7 Indian languages.
 
@@ -53,6 +53,8 @@ Two ready-made courses so any judge can relate:
 | **1. Map** | Any topic or pasted syllabus → a prerequisite graph, including the earlier-grade skills that silently break it, plus the common misconceptions for each concept. | AI + validation |
 | **2. Diagnose** | Adaptive test. Every question is the one with the **highest expected information gain**. The live map lights up as evidence arrives: a right answer clears everything *under* it; a wrong one marks everything *above* it as shaky and sends the search down to find the cause. | Knowledge Space Theory + Bayes |
 | **3. Repair** | A Socratic tutor grounded in the diagnosis — the root gap, the misconceptions shown, the exact questions missed. It asks; it doesn't lecture. | LLM, streamed |
+| **3½. Play** | Lessons start from the student's exact wrong answer and teach it through a game — e.g. the product–sum game replays the missed question, shows product and sum live, and names the failing condition (“right numbers, wrong signs”). Every round counts as mastery evidence. | Interactive widget + BKT |
+| **Pace setter** | “I have 1 hour” → a plan: skips what's known, root gap first, exam weightage or foundations first, focus blocks with breaks, a timer, calendar export, and honest triage of what to leave out. Re-plans from the student's real speed. | Precedence-constrained knapsack |
 | **4. Prove it** | Teach-back (Feynman technique): explain it in your own words — typed or spoken, in your language — and get graded on accuracy, completeness and clarity. Practice updates mastery with Bayesian Knowledge Tracing. | LLM rubric + BKT |
 
 <table>
@@ -63,6 +65,10 @@ Two ready-made courses so any judge can relate:
 <tr>
 <td><img src="docs/screenshots/05-socratic-tutor.png" alt="Socratic tutor" /><br/><sub><b>Repair</b> — lesson, worked example with step-by-step reveal, the student's own misconceptions, and a Socratic tutor.</sub></td>
 <td><img src="docs/screenshots/06-teach-back.png" alt="Teach-back grading" /><br/><sub><b>Prove it</b> — teach-back graded on accuracy, completeness and clarity.</sub></td>
+</tr>
+<tr>
+<td><img src="docs/screenshots/08-pace-setter.jpg" alt="Pace setter plan" /><br/><sub><b>Pace setter</b> — one hour, exam mode: root gap first, 75% of the weightage covered, and an honest list of what to skip.</sub></td>
+<td><img src="docs/screenshots/09-product-sum-game.jpg" alt="Product–sum game" /><br/><sub><b>Learn by playing</b> — the game replays the student's own wrong answer and explains exactly which condition fails.</sub></td>
 </tr>
 <tr>
 <td><img src="docs/screenshots/04-report.png" alt="Diagnostic report" /><br/><sub><b>Report</b> — root gap, misconceptions, ordered study path, every answer reviewable; save as PDF or copy for a teacher.</sub></td>
@@ -199,7 +205,7 @@ Requires Node 20.9+.
 ## ✅ Quality
 
 ```bash
-npm run check        # eslint + tsc --noEmit + 37 unit tests + content validation
+npm run check        # eslint + tsc --noEmit + 41 unit tests + content validation
 npm run benchmark    # diagnostic accuracy on simulated students
 npm run test:e2e     # 7 Playwright tests incl. mobile, against a mock LLM (no key needed)
 npm run build
@@ -224,6 +230,8 @@ npm run build
 - Calibrating slip/guess per question from real response data (IRT), and a classroom validation study.
 - Photo-of-handwritten-working input to catch the exact wrong step.
 - Full UI localisation (the tutor and content are already multilingual).
+- **Class 10 → PhD:** level scale up to research, Bloom's-taxonomy question mix (apply → analyse → evaluate) at higher levels, and a *Paste a paper* mode that builds the prerequisite map for a research paper and tells the reader what they're missing.
+- A widget library (simulations, step-ordering, myth-or-fact) that the AI fills with parameters for any concept.
 
 ## License
 

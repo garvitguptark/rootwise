@@ -6,6 +6,7 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { CourseGate } from "@/components/CourseGate";
 import { LessonPanel } from "@/components/learn/LessonPanel";
+import { ProductSumGame } from "@/components/learn/ProductSumGame";
 import { Practice } from "@/components/learn/Practice";
 import { TeachBack } from "@/components/learn/TeachBack";
 import { TutorChat } from "@/components/learn/TutorChat";
@@ -30,6 +31,7 @@ function Learn({ course, conceptId }: { course: Course; conceptId: string }) {
   const diag = useApp((s) => s.diagnostics[course.id]);
   const settings = useApp((s) => s.settings);
   const setLesson = useApp((s) => s.setLesson);
+  const recordPractice = useApp((s) => s.recordPractice);
   const ai = useAIStatus();
   const [tab, setTab] = useState<Tab>("tutor");
   const [prefill, setPrefill] = useState<string | undefined>();
@@ -145,6 +147,16 @@ function Learn({ course, conceptId }: { course: Course; conceptId: string }) {
           <Meter value={cp?.p ?? 0} tone={!cp ? "neutral" : cp.status === "mastered" ? "good" : cp.status === "gap" ? "bad" : "warn"} label="Mastery" />
         </div>
       </header>
+
+      {concept.id === "factor-pairs" && (
+        <section className="mt-8" aria-label="Interactive game">
+          <ProductSumGame
+            mistake={recentMistakes.find((m) => m.stem.includes("10") && m.stem.includes("−7")) ?? recentMistakes[0]}
+            language={settings.language}
+            onRound={(firstTry) => recordPractice(course.id, concept.id, firstTry, { difficulty: 2, optionCount: 5 })}
+          />
+        </section>
+      )}
 
       {!full ? (
         <div className="mt-8">

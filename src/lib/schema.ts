@@ -35,6 +35,8 @@ export const ConceptSchema = z.object({
   socratic: z.array(z.string().min(1).max(300)).min(1).max(5).optional(),
   /** Ids of the concepts that must be understood first. */
   prerequisites: z.array(z.string()).max(8),
+  /** Relative exam weightage (marks). Defaults: goal concepts 3, others 1. */
+  weight: z.number().min(0).max(20).optional(),
 });
 export type Concept = z.infer<typeof ConceptSchema>;
 

@@ -35,6 +35,7 @@ Rootwise models a subject as a **prerequisite graph** and runs a **10-minute ada
 ## ▶️ Try it
 
 - **Live demo:** _add your Vercel URL here_
+- **Demo video (2:39):** _add your YouTube link here_
 - No sign-up. Both built-in courses, the adaptive engine, the teacher dashboard and an offline tutor work **without any API key**.
 - Add a free Gemini key to unlock AI course generation from any syllabus, the AI Socratic tutor, and AI-graded teach-back in 7 Indian languages.
 

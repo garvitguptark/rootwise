@@ -9,10 +9,10 @@
 [![CI](https://github.com/garvitguptark/rootwise/actions/workflows/ci.yml/badge.svg)](https://github.com/garvitguptark/rootwise/actions/workflows/ci.yml)
 ![Next.js 16](https://img.shields.io/badge/Next.js-16-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6)
-![Tests](https://img.shields.io/badge/tests-37%20unit%20·%207%20e2e-2f9e6b)
+![Tests](https://img.shields.io/badge/tests-41%20unit%20·%208%20e2e-2f9e6b)
 ![a11y](https://img.shields.io/badge/axe-0%20violations-2f9e6b)
 
-[Live demo](#-try-it) · [How it works](#-how-it-works) · [The science](#-the-science) · [Benchmark](#-benchmark) · [Architecture](#-architecture) · [Run locally](#-run-locally)
+[Live demo](#-try-it) · [Features](#-whats-inside) · [How it works](#-how-it-works) · [The science](#-the-science) · [Benchmark](#-benchmark) · [Architecture](#-architecture) · [Run locally](#-run-locally)
 
 <img src="docs/screenshots/01-landing.png" alt="Rootwise landing page with a live diagnostic running on a knowledge graph" width="100%" />
 
@@ -32,14 +32,27 @@ Rootwise models a subject as a **prerequisite graph** and runs a **10-minute ada
 
 > “Your root gap is **Product–sum pairs**, three steps below your goal. Misconception: *gets the signs of the pair wrong*. Fixing it unlocks 3 concepts. Found in 8 questions, 94% confident.”
 
+## ✨ What's inside
+
+| | Feature | What it does |
+|---|---|---|
+| 🗺️ | **AI course builder** | Paste any topic or syllabus, at any level → a validated prerequisite graph, misconceptions and a question bank in under a minute. |
+| 🎯 | **Adaptive root-gap diagnostic** | Knowledge Space Theory + Bayesian inference; every question maximises information gain; finds the exact root gap 4 times in 5 with ~60% fewer questions than a fixed test. |
+| ⏱️ | **Pace setter** | “I have 1 hour” → a personal plan: skips what you know, root gap first, focus blocks and breaks, a timer, calendar export, and honest triage of what to leave out. Re-plans from your real speed. |
+| 🎮 | **Learn by playing** | The lesson for your root gap opens with *your own* wrong answer and turns it into a game that names exactly which condition failed. Every round updates mastery. |
+| 💬 | **Socratic AI tutor** | Grounded in the diagnosis; asks instead of tells; 7 Indian languages; read-aloud and voice input. |
+| 🗣️ | **Teach-back** | Explain it in your own words (typed or spoken) → graded on accuracy, completeness and clarity. |
+| 👩‍🏫 | **Real classes** | Teachers create a class code; students join and take the diagnostic; a live dashboard groups the class by root gap and writes tomorrow's small-group lesson plans. |
+
 ## ▶️ Try it
 
 - **Live demo:** _add your Vercel URL here_
 - **Demo video (2:37):** _add your YouTube link here_
-- No sign-up. Both built-in courses, the adaptive engine, the teacher dashboard and an offline tutor work **without any API key**.
-- Add a free Gemini key to unlock AI course generation from any syllabus, the AI Socratic tutor, and AI-graded teach-back in 7 Indian languages.
+- No sign-up. **Build a course** from any syllabus, **browse** the ready-made courses, or **join a class** with a code.
+- Teachers: open **For teachers**, create a class, share the code — results appear live.
+- Runs fully with a free Gemini key; without one it degrades to an offline tutor and the ready-made courses.
 
-Two ready-made courses so any judge can relate:
+Two ready-made example courses (everything else is generated on demand):
 
 | Course | Audience | Concepts | Questions |
 |---|---|---|---|
@@ -133,6 +146,10 @@ flowchart LR
   end
   subgraph Server["Next.js route handlers (server-only)"]
     API["/api/generate/{graph,questions,lesson}<br/>/api/tutor (streaming) · /api/teachback · /api/status"]
+    CLS["/api/classes · /api/classes/:code<br/>/api/classes/:code/students"]
+    KV[("Upstash Redis<br/>classes + submissions")]
+    CLS --> VAL
+    CLS --> KV
     VAL["Zod validation · size caps · rate limit<br/>prompt fencing · output normalisation"]
     PROV["Provider layer<br/>Gemini (model fallback chain) · OpenAI-compatible · Groq"]
     OFF["Offline fallbacks<br/>scripted Socratic tutor · keyword rubric"]
@@ -140,6 +157,7 @@ flowchart LR
     API --> OFF
   end
   UI -- "fetch / stream" --> API
+  UI -- "class codes" --> CLS
   PROV -- "HTTPS" --> LLM(("LLM"))
 ```
 
@@ -150,6 +168,8 @@ flowchart LR
 - **Two-stage generation** (graph first, then question batches in parallel, lessons lazily on first visit) keeps each request short, gives a live progress UI, and stays within serverless time limits.
 - **Graceful degradation everywhere.** Tutor and teach-back fall back to offline modes if the provider fails; Gemini falls back across models (404/429/5xx) and retries without `thinkingConfig` if a model rejects it; a rejected key produces an actionable error.
 - **Provider-agnostic over plain `fetch`** — no SDK lock-in; any OpenAI-compatible endpoint works.
+- **Minimal server state.** Only class data lives on the server (Redis via Upstash's REST API — no SDK, 120-day expiry); a student's own progress, plans and chats stay on their device. Without Redis configured it falls back to in-memory storage for local development, and `/api/status` says which mode is active.
+- **The pace setter is a precedence-constrained knapsack.** Each unknown concept costs minutes and is worth exam weightage (or foundational impact in mastery mode); the planner greedily picks bundles of concept + missing prerequisites by value per minute, then orders them prerequisites-first with the root gap leading.
 
 ### Project structure
 
@@ -159,12 +179,15 @@ src/
     api/generate/…          graph · questions · lesson (JSON mode)
     api/tutor               streaming Socratic tutor
     api/teachback           Feynman-style grading
-    courses/[courseId]/…    overview · diagnose · report · learn/[conceptId]
-    teacher/                class dashboard
+    api/classes/…           create class · class info/results · student submissions
+    courses/[courseId]/…    overview · diagnose · report · plan · learn/[conceptId]
+    join/                   students join a class with a code
+    teacher/                live class dashboard (+ clearly labelled demo class)
   components/               KnowledgeGraph (custom SVG layout), QuestionCard, TraceLog, learn/*
   content/                  hand-authored courses (quadratics, circuits)
   lib/
-    engine/                 kst.ts · dfs.ts · bkt.ts · graph.ts · analysis.ts · simulate.ts
+    engine/                 kst.ts · dfs.ts · bkt.ts · graph.ts · analysis.ts · plan.ts · simulate.ts
+    server/                 store.ts (Redis/in-memory) · classes.ts
     ai/                     provider.ts · prompts.ts · normalize.ts
     schema.ts               Zod domain model + API contracts
     course-validation.ts    semantic course checks (ids, references, acyclicity, coverage)
@@ -221,11 +244,11 @@ Requires Node 20.9+.
 ```bash
 npm run check        # eslint + tsc --noEmit + 41 unit tests + content validation
 npm run benchmark    # diagnostic accuracy on simulated students
-npm run test:e2e     # 7 Playwright tests incl. mobile, against a mock LLM (no key needed)
+npm run test:e2e     # 8 Playwright tests incl. mobile and a two-browser class flow, against a mock LLM
 npm run build
 ```
 
-- **Unit tests** cover the graph algorithms, BKT maths, knowledge-space enumeration (every state is prerequisite-closed), end-to-end diagnoses of scripted students, persistence round-trips, the benchmark gate (adaptive must beat a 36-question fixed test with under half the questions), AI-output normalisation, prompt-injection fencing, and the offline fallbacks.
+- **Unit tests** cover the pace-setter planner (budget, prerequisite order, triage, calendar export), the graph algorithms, BKT maths, knowledge-space enumeration (every state is prerequisite-closed), end-to-end diagnoses of scripted students, persistence round-trips, the benchmark gate (adaptive must beat a 36-question fixed test with under half the questions), AI-output normalisation, prompt-injection fencing, and the offline fallbacks.
 - **End-to-end tests** run the real app against `scripts/mock-llm.mjs` — an OpenAI- *and* Gemini-compatible mock that also simulates model-not-found and rejected-parameter errors to exercise the fallbacks.
 - **Accessibility:** axe-core reports **0 violations** (WCAG 2 A/AA + best practices) on every main page in light and dark themes. Status colours were validated for colour-vision deficiency and always ship with a label or icon.
 - **CI** (GitHub Actions) runs everything above on every push.
@@ -235,12 +258,12 @@ npm run build
 - API keys are server-only (`server-only` imports); the client only learns *whether* AI is live.
 - All request bodies are schema-validated with size caps; per-IP rate limiting on AI routes.
 - Learner-supplied text (syllabi, explanations) is fenced and labelled as data in prompts to resist prompt injection.
-- No accounts and no database: a student's diagnostics and progress stay in their browser.
+- No accounts. A student's progress stays in their browser; only what they submit to a class (the name they type + their diagnostic) is stored, readable only with the teacher's private key, and expires after 120 days.
+- Class submissions are validated against the class's course (schema + concept ids) and capped at 200 students per class.
 - Security headers (HSTS, nosniff, frame and permissions policies; microphone only for voice answers).
 
 ## 🗺️ Roadmap
 
-- Classroom codes so real students' diagnostics flow into the teacher dashboard (with school-level privacy controls).
 - Calibrating slip/guess per question from real response data (IRT), and a classroom validation study.
 - Photo-of-handwritten-working input to catch the exact wrong step.
 - Full UI localisation (the tutor and content are already multilingual).

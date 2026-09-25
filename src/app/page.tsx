@@ -63,14 +63,17 @@ export default function Home() {
               concept that&rsquo;s <strong className="font-semibold text-ink">really</strong> missing — then a Socratic AI tutor fixes that, not the symptom.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
-              <ButtonLink href="/courses/quadratics-cbse10" size="lg">
-                Try the Class 10 diagnostic <ArrowRight className="size-4" />
+              <ButtonLink href="/courses/new" size="lg">
+                Build a course from any syllabus <ArrowRight className="size-4" />
               </ButtonLink>
-              <ButtonLink href="/courses/new" size="lg" variant="secondary">
-                Build from your syllabus
+              <ButtonLink href="/courses" size="lg" variant="secondary">
+                Browse courses
+              </ButtonLink>
+              <ButtonLink href="/join" size="lg" variant="ghost">
+                Join a class
               </ButtonLink>
             </div>
-            <p className="mt-5 text-[13px] text-ink-3">No sign-up · runs in your browser · also try the B.Tech DC Circuits course</p>
+            <p className="mt-5 text-[13px] text-ink-3">No sign-up · any subject, any level · teachers get a live class dashboard</p>
           </div>
           <div className="enter min-w-0" style={{ animationDelay: "120ms" }}>
             <HeroDemo />

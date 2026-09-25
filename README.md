@@ -55,6 +55,7 @@ Two ready-made courses so any judge can relate:
 | **3. Repair** | A Socratic tutor grounded in the diagnosis — the root gap, the misconceptions shown, the exact questions missed. It asks; it doesn't lecture. | LLM, streamed |
 | **3½. Play** | Lessons start from the student's exact wrong answer and teach it through a game — e.g. the product–sum game replays the missed question, shows product and sum live, and names the failing condition (“right numbers, wrong signs”). Every round counts as mastery evidence. | Interactive widget + BKT |
 | **Pace setter** | “I have 1 hour” → a plan: skips what's known, root gap first, exam weightage or foundations first, focus blocks with breaks, a timer, calendar export, and honest triage of what to leave out. Re-plans from the student's real speed. | Precedence-constrained knapsack |
+| **Classes** | A teacher creates a class and gets a 6-character code. Students join at `/join/CODE`, take the diagnostic, and their results stream into the teacher dashboard (refreshes every 8 s), grouped by root gap with ready-made reteach groups. Results are readable only with the teacher's private key. | Next.js API + Redis |
 | **4. Prove it** | Teach-back (Feynman technique): explain it in your own words — typed or spoken, in your language — and get graded on accuracy, completeness and clarity. Practice updates mastery with Bayesian Knowledge Tracing. | LLM rubric + BKT |
 
 <table>
@@ -190,7 +191,20 @@ Requires Node 20.9+.
 
 1. Push the repo to GitHub and import it at [vercel.com/new](https://vercel.com/new) (framework auto-detected).
 2. Add the environment variable `GEMINI_API_KEY` (free at [aistudio.google.com/apikey](https://aistudio.google.com/apikey)).
-3. Deploy. That's it — no database, no other services.
+3. For classes: in the Vercel project open **Storage → Create → Upstash Redis** (free tier) and connect it; this adds `KV_REST_API_URL` and `KV_REST_API_TOKEN`. Redeploy. (`/api/status` reports `"storage": "redis"` when it's active.)
+4. Deploy. Students' own progress stays on their device; only class submissions are stored on the server.
+
+### Backend API
+
+| Route | Purpose |
+|---|---|
+| `GET /api/status` | AI provider + storage mode (never exposes keys) |
+| `POST /api/generate/graph` · `/questions` · `/lesson` | AI course builder (Zod-validated, normalised, rate-limited) |
+| `POST /api/tutor` | Streaming Socratic tutor with offline fallback |
+| `POST /api/teachback` | Rubric grading of explanations |
+| `POST /api/classes` | Create a class → `{ code, teacherKey }` |
+| `GET /api/classes/:code` | Public class info for joining; with `?key=` the full results for the teacher |
+| `POST /api/classes/:code/students` | A student submits a finished diagnostic (schema-validated against the course) |
 
 ### AI providers
 

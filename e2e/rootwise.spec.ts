@@ -88,6 +88,27 @@ test("the Socratic tutor streams a reply and teach-back is graded", async ({ pag
 
 test("teacher dashboard groups the class by root gap", async ({ page }) => {
   await page.goto("/teacher");
+  await page.getByRole("button", { name: /Demo class/ }).click();
   await expect(page.getByRole("heading", { name: "Root gaps across the class" })).toBeVisible();
   await expect(page.getByText(/Group A/)).toBeVisible();
+});
+
+test("a real class: teacher creates it, a student joins and appears on the dashboard", async ({ page, browser }) => {
+  await page.goto("/teacher");
+  await page.getByLabel("Class name").fill("10-B Maths");
+  await page.getByRole("button", { name: "Create class" }).click();
+  const code = (await page.getByLabel(/Class code/).textContent())!.trim();
+  expect(code).toMatch(/^[A-Z0-9]{6}$/);
+  await expect(page.getByText("Waiting for students")).toBeVisible();
+
+  const student = await browser.newPage();
+  await student.goto(`/join/${code}`);
+  await student.getByLabel(/Your name/).fill("Asha");
+  await student.getByRole("button", { name: /Join and start/ }).click();
+  await answerAs(student, new Set(["factor-pairs", "factorise", "roots", "word-problems"]));
+  await expect(student.getByText(/Result shared with 10-B Maths/)).toBeVisible();
+
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "Root gaps across the class" })).toBeVisible();
+  await expect(page.getByText("Asha").first()).toBeVisible();
 });

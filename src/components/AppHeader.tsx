@@ -13,6 +13,7 @@ import { Logo } from "./Logo";
 const NAV = [
   { href: "/courses", label: "Courses" },
   { href: "/teacher", label: "For teachers" },
+  { href: "/join", label: "Join a class" },
 ];
 
 export function AppHeader() {

@@ -214,3 +214,49 @@ export const LessonRequestSchema = z.object({
   misconceptions: z.array(z.string().max(140)).max(6),
 });
 export type LessonRequest = z.infer<typeof LessonRequestSchema>;
+
+// ---------------------------------------------------------------------------
+// Classes (teacher dashboard with real students)
+// ---------------------------------------------------------------------------
+
+export const ClassCreateSchema = z.object({
+  name: z.string().trim().min(1).max(80),
+  courseId: z.string().min(1).max(80),
+  /** Required for AI-generated courses, so students on other devices can load it. */
+  course: CourseSchema.optional(),
+});
+
+const ConceptStateSchema = z.looseObject({
+  p: z.number().min(0).max(1),
+  asked: z.number().int().min(0).max(100),
+  correct: z.number().int().min(0).max(100),
+  status: z.enum(["unknown", "queued", "probing", "mastered", "shaky", "gap"]),
+  evidence: z.enum(["none", "direct", "inferred"]),
+  verdict: z.enum(["root", "blocked", "solid", "shaky", "inferred"]).optional(),
+});
+
+export const DiagnosticStateSchema = z.looseObject({
+  version: z.literal(2),
+  engine: z.enum(["kst", "dfs"]),
+  courseId: z.string().max(80),
+  concepts: z.record(z.string().max(64), ConceptStateSchema),
+  attempts: z
+    .array(
+      z.looseObject({
+        questionId: z.string().max(80),
+        conceptId: z.string().max(64),
+        optionId: z.string().max(8),
+        correct: z.boolean(),
+        guessing: z.boolean(),
+        misconceptionId: z.string().max(64).optional(),
+      }),
+    )
+    .max(80),
+  done: z.boolean(),
+});
+
+export const ClassSubmitSchema = z.object({
+  studentId: z.string().regex(/^[A-Za-z0-9-]{8,64}$/),
+  name: z.string().trim().min(1).max(60),
+  state: DiagnosticStateSchema,
+});

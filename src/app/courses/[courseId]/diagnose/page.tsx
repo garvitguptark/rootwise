@@ -4,6 +4,7 @@ import { ArrowRight, ChevronLeft, Flag, Target } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
+import { ClassSync } from "@/components/ClassSync";
 import { CourseGate } from "@/components/CourseGate";
 import { KnowledgeGraph, StatusLegend } from "@/components/KnowledgeGraph";
 import { QuestionCard, type Feedback } from "@/components/QuestionCard";
@@ -56,6 +57,7 @@ function Diagnose({ course }: { course: Course }) {
   return (
     <PageShell wide className="pb-16">
       <h1 className="sr-only">Diagnostic: {course.title}</h1>
+      {showDone && <ClassSync courseId={course.id} />}
       <div className="flex flex-wrap items-center gap-3">
         <Link href={`/courses/${course.id}`} className="inline-flex items-center gap-1 text-[13px] text-ink-3 hover:text-ink">
           <ChevronLeft className="size-4" aria-hidden /> {course.title}

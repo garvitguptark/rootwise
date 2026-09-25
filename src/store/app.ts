@@ -47,6 +47,23 @@ export interface StoredPlan {
   active?: { id: string; startedAt: string };
 }
 
+export interface TeacherClass {
+  code: string;
+  teacherKey: string;
+  name: string;
+  courseId: string;
+  createdAt: string;
+}
+
+export interface Membership {
+  code: string;
+  className: string;
+  studentId: string;
+  name: string;
+  /** finishedAt of the diagnostic last sent to the class */
+  sentFor?: string;
+}
+
 type Key = `${string}:${string}`;
 export const key = (courseId: string, conceptId: string): Key => `${courseId}:${conceptId}`;
 
@@ -59,6 +76,11 @@ interface State {
   teachbacks: Record<Key, TeachBackAttempt[]>;
   settings: Settings;
   plans: Record<string, StoredPlan>;
+  classes: TeacherClass[];
+  memberships: Record<string, Membership>;
+
+  addClass: (c: TeacherClass) => void;
+  setMembership: (courseId: string, m: Membership | null) => void;
 
   setPlan: (courseId: string, p: StoredPlan | null) => void;
   startBlock: (courseId: string, blockId: string) => void;
@@ -112,6 +134,17 @@ export const useApp = create<State>()(
       teachbacks: {},
       settings: { language: "en", readable: false, textScale: 1, theme: "system", autoRead: false },
       plans: {},
+      classes: [],
+      memberships: {},
+
+      addClass: (c) => set((s) => ({ classes: [c, ...s.classes.filter((x) => x.code !== c.code)] })),
+      setMembership: (courseId, m) =>
+        set((s) => {
+          const memberships = { ...s.memberships };
+          if (m) memberships[courseId] = m;
+          else delete memberships[courseId];
+          return { memberships };
+        }),
 
       setPlan: (courseId, p) =>
         set((s) => {
@@ -236,6 +269,8 @@ export const useApp = create<State>()(
         teachbacks: s.teachbacks,
         settings: s.settings,
         plans: s.plans,
+        classes: s.classes,
+        memberships: s.memberships,
       }),
     },
   ),

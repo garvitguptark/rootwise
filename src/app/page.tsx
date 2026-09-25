@@ -64,7 +64,7 @@ export default function Home() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
               <ButtonLink href="/courses/new" size="lg">
-                Build a course from any syllabus <ArrowRight className="size-4" />
+                Build a course with AI <ArrowRight className="size-4" />
               </ButtonLink>
               <ButtonLink href="/courses" size="lg" variant="secondary">
                 Browse courses
